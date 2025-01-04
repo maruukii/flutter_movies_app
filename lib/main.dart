@@ -1,20 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_movies_app_mohamedhedi_magherbi/view-models/Authviewmodel.dart';
+import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Auth/login.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 
-void main() {
-  runApp(const MainApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
+  // Widget build(BuildContext context) {
+  //   return MaterialApp(
+  //     title: 'Hello',
+  //     theme: ThemeData(
+  //       colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+  //       useMaterial3: true,
+  //     ),
+  //     home:  LoginPage(),
+  //   );
+  // }
+  @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
-    );
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => Authviewmodel()),
+        ],
+        child: MaterialApp(
+          theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple)),
+          home: LoginPage(),
+        ));
   }
 }
