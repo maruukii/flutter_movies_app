@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp(
           theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple)),
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)),
           home: LoginPage(),
         ));
   }

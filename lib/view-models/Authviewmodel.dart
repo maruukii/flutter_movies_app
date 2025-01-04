@@ -5,17 +5,20 @@ import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Auth/login.dart';
 
 class Authviewmodel extends ChangeNotifier {
   final AuthService _authService = AuthService();
-
+  String? username = "";
+  String? email = "";
   Future<bool> register(String email, String password, String username,
       BuildContext context) async {
     try {
       final user =
           await _authService.registerWithEmail(email, username, password);
-      notifyListeners(); // Notifie les widgets que l'état a changé
+      username = username;
+      notifyListeners();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Logged in as $username")),
+      );
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomePage(username: username)));
+          context, MaterialPageRoute(builder: (context) => HomePage()));
       return user != null;
     } catch (e) {
       ScaffoldMessenger.of(context)
@@ -28,15 +31,16 @@ class Authviewmodel extends ChangeNotifier {
   Future<bool> login(
       String email, String password, BuildContext context) async {
     try {
-      final String? username =
-          await _authService.loginWithEmail(email, password);
+      final String? user = await _authService.loginWithEmail(email, password);
+      username = user;
       notifyListeners();
       // Notifie les widgets que l'état a changé
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Logged in as $username")),
+      );
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomePage(username: username)));
-      return username != null;
+          context, MaterialPageRoute(builder: (context) => HomePage()));
+      return user != null;
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -48,18 +52,21 @@ class Authviewmodel extends ChangeNotifier {
   Future<void> logout(BuildContext context) async {
     try {
       await _authService.logout();
+
       notifyListeners();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text("you have been disconnected successfully.")),
       );
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => LoginPage()));
+      username = "";
+      email = "";
     } catch (e) {
       notifyListeners();
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur lors de la déconnexion : $e")),
+        SnackBar(content: Text("Error while disconnecting : $e")),
       );
     }
   }
@@ -67,11 +74,13 @@ class Authviewmodel extends ChangeNotifier {
   Future<bool> signInWithGoogle(BuildContext context) async {
     try {
       final user = await _authService.loginWithGoogle();
-      notifyListeners(); // Notifie les widgets que l'état a changé
+      username = user?.displayName?.split(" ")[0];
+      notifyListeners();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Logged in as $username")),
+      );
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomePage(username: user!.email!)));
+          context, MaterialPageRoute(builder: (context) => HomePage()));
       return user != null;
     } catch (e) {
       ScaffoldMessenger.of(context)
