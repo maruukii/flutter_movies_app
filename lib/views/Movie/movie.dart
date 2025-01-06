@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Profile/profile.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/view-models/Authviewmodel.dart';
 
@@ -33,14 +32,7 @@ class Movie extends StatelessWidget {
                             fontSize: 20, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
-                      IconButton(
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ProfilePage()));
-                          },
-                          icon: Icon(Icons.person))
+                      Icon(Icons.person)
                     ],
                   )
                 ],

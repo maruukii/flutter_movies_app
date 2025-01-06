@@ -16,6 +16,8 @@ dependencies:
   provider: ^6.1.2
   http: ^1.2.2
   cloud_firestore: ^5.6.0
+  curved_labeled_navigation_bar: ^2.0.5
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -26,3 +28,4 @@ flutter:
   uses-material-design: true
   assets:
     - images/google.png
+    - images/default_profile.jpg

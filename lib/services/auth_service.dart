@@ -19,13 +19,6 @@ class AuthService {
         username = email;
       } else {
         realEmail = email;
-        querySnapshot = await _firestore
-            .collection('users')
-            .where('email', isEqualTo: email)
-            .get();
-        if (querySnapshot.docs.isNotEmpty) {
-          username = querySnapshot.docs.first['username'];
-        }
       }
       // Sign in the user
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -46,7 +39,8 @@ class AuthService {
         email: email,
         password: password,
       );
-      await _firestore.collection('users').add({
+      User? currentUser = _auth.currentUser;
+      await _firestore.collection('users').doc(currentUser?.uid).set({
         'username': username,
         'email': email,
       });
@@ -77,13 +71,34 @@ class AuthService {
       // Sign in with Firebase
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
-      final String? user = userCredential.user?.email;
+      final User? user = userCredential.user;
       if (user != null) {
+        QuerySnapshot querySnapshot = await _firestore
+            .collection('users')
+            .where('email', isEqualTo: user.email)
+            .get();
+        if (querySnapshot.docs.isEmpty) {
+          User? currentUser = _auth.currentUser;
+          await _firestore.collection('users').doc(currentUser?.uid).set({
+            'username': user.displayName?.split(" ")[0],
+            'email': user.email,
+          });
+        }
+
         return userCredential.user;
       }
     } catch (e) {
       throw Exception("Failed to login with google: $e");
     }
+  }
+
+  Future<QuerySnapshot> getUserData() async {
+    final userData = await _firestore
+        .collection('users')
+        .where('email', isEqualTo: _auth.currentUser?.email)
+        .get();
+    return userData;
+    // _base64Image = userData.docs.first["email"];
   }
 
   Future<void> logout() async {

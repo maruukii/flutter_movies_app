@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
             filled: true,
             prefixIcon: Icon(Icons.person),
             fillColor: Colors.blue.withOpacity(0.1),
-            hintText: "Email/Username",
+            hintText: "Email / Username",
           ),
         ),
         SizedBox(height: 10),

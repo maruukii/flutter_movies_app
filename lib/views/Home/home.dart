@@ -1,19 +1,51 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // For API calls
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/view-models/Authviewmodel.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Profile/profile.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Movie/movie.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserData();
+  }
+
+  Future<void> _getUserData() async {
+    final authViewModel = Provider.of<Authviewmodel>(context, listen: false);
+    await authViewModel.getUserData(context);
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final authViewModel = Provider.of<Authviewmodel>(context);
     final username = authViewModel.username;
+    if (username != null) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
