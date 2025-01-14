@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:dart_frog/dart_frog.dart';
 import '../database/database_service.dart';
 
@@ -24,8 +23,7 @@ Future<Response> onRequest(RequestContext context) async {
         },
       );
     }
-    if (context.request.method == HttpMethod.delete &&
-        context.request.uri.path == '/reviews/delete/userId/movieId') {
+    if (context.request.method == HttpMethod.delete) {
       final movieId = context.request.uri.queryParameters['movieId'];
       final userId = context.request.uri.queryParameters['userId'];
       if (movieId != null && userId != null) {
@@ -46,8 +44,7 @@ Future<Response> onRequest(RequestContext context) async {
         throw Exception('movieId/userId parameter is required');
       }
     }
-    if (context.request.method == HttpMethod.put &&
-        context.request.uri.path == '/reviews/userId/movieId') {
+    if (context.request.method == HttpMethod.put) {
       final movieId = context.request.uri.queryParameters['movieId'];
       final userId = context.request.uri.queryParameters['userId'];
       final body = await context.request.json();
@@ -72,31 +69,27 @@ Future<Response> onRequest(RequestContext context) async {
         throw Exception('Invalid body format or missing movieId/userId');
       }
     }
-    if (context.request.method == HttpMethod.get &&
-        context.request.uri.path == '/reviews/movieId') {
-      final movieId = context.request.uri.queryParameters['movieId'];
-
+    if (context.request.method == HttpMethod.get) {
+      final movieId =
+          int.tryParse(context.request.uri.queryParameters['movieId'] ?? '');
       if (movieId != null) {
-        final review = await reviewsCollection.find({'movieId': movieId});
-
+        final reviews =
+            await reviewsCollection.find({'movieId': movieId}).toList();
         return Response.json(
-          body: review,
+          body: reviews,
         );
       } else {
-        throw Exception('movieId parameter is required');
+        final reviews = await reviewsCollection.find().toList();
+
+        return Response.json(
+          body: {
+            'status': 'success',
+            'data': reviews,
+          },
+        );
       }
     }
-    if (context.request.method == HttpMethod.get &&
-        context.request.uri.path == '/reviews') {
-      final reviews = await reviewsCollection.find().toList();
 
-      return Response.json(
-        body: {
-          'status': 'success',
-          'data': reviews,
-        },
-      );
-    }
     return Response.json(
       statusCode: 404,
       body: {

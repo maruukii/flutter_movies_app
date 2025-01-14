@@ -13,22 +13,30 @@ class NavigationPage extends StatefulWidget {
 }
 
 class _NavigationState extends State<NavigationPage> {
-  int _page = 0;
-  List<Widget> list = [HomePage(), ProfilePage(), ProfilePage(), ReviewsPage()];
+  int _page = 1;
+  List<Widget> list = [ProfilePage(), HomePage(), ProfilePage()];
+
+  @override
+  void initState() {
+    super.initState();
+    _page = 1;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: list[_page],
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Colors.blueAccent,
+        index: _page,
         items: [
-          CurvedNavigationBarItem(child: Icon(Icons.home), label: "Home"),
           CurvedNavigationBarItem(
               child: Icon(Icons.perm_identity), label: "Profile"),
+          CurvedNavigationBarItem(child: Icon(Icons.home), label: "Home"),
           CurvedNavigationBarItem(
               child: Icon(Icons.movie), label: "My Favorite Movies"),
-          CurvedNavigationBarItem(
-              child: Icon(Icons.reviews), label: "My reviews")
+          // CurvedNavigationBarItem(
+          //     child: Icon(Icons.reviews), label: "My reviews")
         ],
         onTap: (index) {
           setState(() {

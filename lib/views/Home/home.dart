@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Movies"),
+              const Text("MoviesDB"),
               Row(
                 children: [
                   Text(
@@ -163,11 +163,35 @@ class _FetchDataExampleState extends State<FetchDataExample> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => Movie(
-                          movie: movie["original_title"],
-                          poster: movie["poster_path"])));
+                      builder: (context) => MoviePage(
+                            movieId: movie["id"],
+                            movie: movie["original_title"],
+                            poster: movie["poster_path"],
+                            description: movie["overview"],
+                            rating: movie["vote_average"].toDouble(),
+                            vote_count: movie["vote_count"].toInt(),
+                            release_date: movie["release_date"],
+                          )));
             },
             leading: Image.network(posterUrl + movie['poster_path']),
+            trailing: SizedBox(
+              width: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(
+                    Icons.star,
+                    color: Colors.yellow,
+                    size: 22,
+                  ),
+                  SizedBox(width: 4.0),
+                  Text(
+                    "${(movie["vote_average"] as num).toStringAsFixed(2)}",
+                    style: TextStyle(color: Colors.black, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
             title: Text(
               movie['original_title'],
               style: const TextStyle(fontWeight: FontWeight.bold),
