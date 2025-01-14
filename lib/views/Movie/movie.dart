@@ -155,7 +155,7 @@ class _MoviePageState extends State<MoviePage> {
                       height: double.infinity,
                     ),
                     Positioned(
-                      bottom: 16.0,
+                      bottom: 50.0,
                       right: 16.0,
                       child: Container(
                         padding: EdgeInsets.all(8.0),
