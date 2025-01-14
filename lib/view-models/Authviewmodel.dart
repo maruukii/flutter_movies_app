@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/services/auth_service.dart';
-import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Home/home.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Auth/login.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/views/navigation.dart';
 

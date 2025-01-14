@@ -3,6 +3,7 @@ import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Home/home.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Profile/profile.dart';
+import 'package:flutter_movies_app_mohamedhedi_magherbi/views/all_review.dart';
 
 class NavigationPage extends StatefulWidget {
   const NavigationPage({super.key});
@@ -13,7 +14,7 @@ class NavigationPage extends StatefulWidget {
 
 class _NavigationState extends State<NavigationPage> {
   int _page = 0;
-  List<Widget> list = [HomePage(), ProfilePage()];
+  List<Widget> list = [HomePage(), ProfilePage(), ProfilePage(), ReviewsPage()];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +26,9 @@ class _NavigationState extends State<NavigationPage> {
           CurvedNavigationBarItem(
               child: Icon(Icons.perm_identity), label: "Profile"),
           CurvedNavigationBarItem(
-              child: Icon(Icons.movie), label: "My Favorite Movies")
+              child: Icon(Icons.movie), label: "My Favorite Movies"),
+          CurvedNavigationBarItem(
+              child: Icon(Icons.reviews), label: "My reviews")
         ],
         onTap: (index) {
           setState(() {
