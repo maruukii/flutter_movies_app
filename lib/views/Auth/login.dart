@@ -43,13 +43,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _header() {
     return Column(
-      children: [
-        Text(
-          "MoviesDB",
-          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-        ),
-        Text("Enter your credentials to login !")
-      ],
+      children: [Image.asset('images/logo_app.png')],
     );
   }
 
@@ -70,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
             hintText: "Email / Username",
           ),
         ),
-        SizedBox(height: 10),
+        SizedBox(height: 30),
         TextField(
           controller: _passwordController,
           obscureText: _obscurePassword,
@@ -89,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
             hintText: "Password",
           ),
         ),
-        SizedBox(height: 10),
+        SizedBox(height: 20),
         ElevatedButton(
           onPressed: () {
             final email = _emailController.text.trim();
@@ -114,7 +108,9 @@ class _LoginPageState extends State<LoginPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: Text("------------ OR ------------")),
+        Center(
+            child:
+                Text("------------------------ OR ------------------------")),
         Container(
           height: 45,
           margin: EdgeInsets.all(10),

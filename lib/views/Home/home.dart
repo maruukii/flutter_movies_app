@@ -1,11 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Movie/movie.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/view-models/Authviewmodel.dart';
-import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Profile/profile.dart';
-import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Movie/movie.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -29,6 +30,35 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  void _showSignOutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirm Sign Out"),
+          content: const Text("Are you sure you want to sign out?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                final authViewModel =
+                    Provider.of<Authviewmodel>(context, listen: false);
+                authViewModel.logout(context);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text("Sign Out"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -62,13 +92,8 @@ class _HomePageState extends State<HomePage> {
                     textAlign: TextAlign.center,
                   ),
                   IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ProfilePage()));
-                      },
-                      icon: Icon(Icons.person))
+                      onPressed: _showSignOutConfirmationDialog,
+                      icon: Icon(Icons.logout))
                 ],
               )
             ],
@@ -76,14 +101,8 @@ class _HomePageState extends State<HomePage> {
       body: Container(
         margin: const EdgeInsets.all(24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            const Expanded(child: FetchDataExample()),
-            ElevatedButton(
-                onPressed: () {
-                  authViewModel.logout(context);
-                },
-                child: const Text('Sign Out'))
+            const Expanded(child: TopRatedMoviesCarousel()),
           ],
         ),
       ),
@@ -91,34 +110,38 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class FetchDataExample extends StatefulWidget {
-  const FetchDataExample({super.key});
+class TopRatedMoviesCarousel extends StatefulWidget {
+  const TopRatedMoviesCarousel({super.key});
 
   @override
-  _FetchDataExampleState createState() => _FetchDataExampleState();
+  _TopRatedMoviesCarouselState createState() => _TopRatedMoviesCarouselState();
 }
 
-class _FetchDataExampleState extends State<FetchDataExample> {
-  List<dynamic> data = [];
+class _TopRatedMoviesCarouselState extends State<TopRatedMoviesCarousel> {
+  List<dynamic> topRatedMovies = [];
   bool isLoading = true;
   String errorMessage = '';
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    fetchTopRatedMovies();
   }
 
-  Future<void> fetchData() async {
+  Future<void> fetchTopRatedMovies() async {
     final url = Uri.parse(
-        'https://api.themoviedb.org/3/movie/upcoming?api_key=2c5bce24eb7693d0cee8afc86ec311d0');
+        'https://api.themoviedb.org/3/movie/top_rated?api_key=${dotenv.env['movies_db_key']}');
 
     try {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         setState(() {
-          data = json.decode(response.body)['results'];
+          topRatedMovies = json
+              .decode(response.body)['results']
+              .take(5)
+              .toList(); // Show only the first 5 movies
           isLoading = false;
         });
       } else {
@@ -137,7 +160,7 @@ class _FetchDataExampleState extends State<FetchDataExample> {
 
   @override
   Widget build(BuildContext context) {
-    const posterUrl = "https://image.tmdb.org/t/p/w500";
+    const posterUrl = "https://image.tmdb.org/t/p/w185";
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -152,60 +175,96 @@ class _FetchDataExampleState extends State<FetchDataExample> {
       );
     }
 
-    return ListView.builder(
-      itemCount: data.length,
-      itemBuilder: (context, index) {
-        final movie = data[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 10),
-          child: ListTile(
-            onTap: () {
-              Navigator.push(
+    return Column(
+      children: [
+        const Text(
+          "Top Rated Movies",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10), // Reduced spacing
+        CarouselSlider.builder(
+          itemCount: topRatedMovies.length.clamp(0, 5), // Limit to 5 movies
+          itemBuilder: (context, index, realIndex) {
+            final movie = topRatedMovies[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => MoviePage(
-                            movieId: movie["id"],
-                            movie: movie["original_title"],
-                            poster: movie["poster_path"],
-                            description: movie["overview"],
-                            rating: movie["vote_average"].toDouble(),
-                            vote_count: movie["vote_count"].toInt(),
-                            release_date: movie["release_date"],
-                          )));
-            },
-            leading: Image.network(posterUrl + movie['poster_path']),
-            trailing: SizedBox(
-              width: 60,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Icon(
-                    Icons.star,
-                    color: Colors.yellow,
-                    size: 22,
+                    builder: (context) => MoviePage(
+                      movieId: movie["id"],
+                      movie: movie["original_title"],
+                      poster: movie["poster_path"],
+                      description: movie["overview"],
+                      rating: movie["vote_average"].toDouble(),
+                      vote_count: movie["vote_count"].toInt(),
+                      release_date: movie["release_date"],
+                    ),
                   ),
-                  SizedBox(width: 4.0),
+                );
+              },
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      posterUrl + movie['poster_path'],
+                      fit: BoxFit.cover,
+                      height: 300,
+                    ),
+                  ),
+                  const SizedBox(height: 8), // Reduced spacing
                   Text(
-                    "${(movie["vote_average"] as num).toStringAsFixed(2)}",
-                    style: TextStyle(color: Colors.black, fontSize: 16),
+                    movie['original_title'],
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold),
+                    overflow:
+                        TextOverflow.ellipsis, // Use ellipsis for long titles
+                    maxLines: 1, // Limit to 1 line
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        color: Colors.yellow,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 4.0),
+                      Text(
+                        "${(movie["vote_average"] as num).toStringAsFixed(2)}",
+                        style:
+                            const TextStyle(color: Colors.black, fontSize: 16),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ),
-            title: Text(
-              movie['original_title'],
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(
-              movie['overview'],
-              maxLines: 2, // Limit to 2 lines
-              overflow:
-                  TextOverflow.ellipsis, // Show ellipsis if text overflows
-              style: TextStyle(fontSize: 14), // Adjust font size if needed
+            );
+          },
+          options: CarouselOptions(
+            height: 422,
+            autoPlay: true,
+            enlargeCenterPage: true,
+            onPageChanged: (index, reason) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+          ),
+        ),
+        const SizedBox(height: 8), // Reduced spacing
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: SingleChildScrollView(
+            child: Text(
+              topRatedMovies[_currentIndex]['overview'],
+              style: const TextStyle(fontSize: 18),
+              textAlign: TextAlign.center,
             ),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

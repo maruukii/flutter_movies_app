@@ -11,9 +11,10 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmpassController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -85,8 +86,14 @@ class _SignUpPageState extends State<SignUpPage> {
               Column(
                 children: [
                   _buildTextField(
-                    controller: _usernameController,
-                    hintText: "Username",
+                    controller: _firstNameController,
+                    hintText: "First Name",
+                    prefixIcon: Icons.person,
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTextField(
+                    controller: _lastNameController,
+                    hintText: "Last Name",
                     prefixIcon: Icons.person,
                   ),
                   const SizedBox(height: 20),
@@ -119,10 +126,14 @@ class _SignUpPageState extends State<SignUpPage> {
                 onPressed: () {
                   final email = _emailController.text.trim();
                   final password = _passwordController.text.trim();
-                  final username = _usernameController.text.trim();
+                  final firstName = _firstNameController.text.trim();
+                  final lastName = _lastNameController.text.trim();
                   final confirmpass = _confirmpassController.text.trim();
 
-                  if (username.isEmpty || email.isEmpty || password.isEmpty) {
+                  if (firstName.isEmpty ||
+                      lastName.isEmpty ||
+                      email.isEmpty ||
+                      password.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                           content: Text("Please fill in all fields")),
@@ -136,7 +147,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     );
                     return;
                   }
-                  authViewModel.register(email, password, username, context);
+                  authViewModel.register(
+                      email, password, firstName, lastName, context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
@@ -148,7 +160,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-              const Center(child: Text("------------ OR ------------")),
+              const Center(
+                  child: Text(
+                      "------------------------ OR ------------------------")),
               Container(
                 height: 45,
                 decoration: BoxDecoration(

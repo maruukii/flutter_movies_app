@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/views/all_review.dart';
@@ -111,6 +112,21 @@ class _MoviePageState extends State<MoviePage> {
         );
       },
     );
+  }
+
+  Future<Map<String, dynamic>?> fetchUserData(String userId) async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      if (userDoc.exists) {
+        return userDoc.data();
+      }
+    } catch (e) {
+      print('Failed to fetch user data: $e');
+    }
+    return null;
   }
 
   @override
@@ -244,54 +260,73 @@ class _MoviePageState extends State<MoviePage> {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final review = data[index];
-                        return Card(
-                          margin: EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 8.0),
-                          elevation: 4.0,
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: AssetImage(
-                                  'images/default_profile.jpg'), // Placeholder image URL
-                            ),
-                            title: Text(review.username,
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(review.content),
-                                SizedBox(height: 8.0),
-                                Text(
-                                  review.date,
-                                  style: TextStyle(
-                                      fontSize: 12, color: Colors.grey),
+                        return FutureBuilder<Map<String, dynamic>?>(
+                          future: fetchUserData(review.userId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            }
+                            final userData = snapshot.data;
+                            final userPhoto = userData?['photo'] ??
+                                'images/default_profile.jpg';
+                            return Card(
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: 16.0, vertical: 8.0),
+                              elevation: 4.0,
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: userPhoto.startsWith('http')
+                                      ? NetworkImage(userPhoto)
+                                      : AssetImage(userPhoto) as ImageProvider,
                                 ),
-                              ],
-                            ),
-                            trailing: Container(
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.7),
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.star,
-                                    color: Colors.yellow,
-                                    size: 20,
+                                title: Text(
+                                  review.username,
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(review.content),
+                                    SizedBox(height: 8.0),
+                                    Text(
+                                      review.date,
+                                      style: TextStyle(
+                                          fontSize: 12, color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                                trailing: Container(
+                                  padding: EdgeInsets.all(8.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(8.0),
                                   ),
-                                  SizedBox(width: 4.0),
-                                  Text(
-                                    review.rating.toString(),
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.star,
+                                        color: Colors.yellow,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 4.0),
+                                      Text(
+                                        review.rating.toString(),
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 16),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         );
                       },
                       childCount: data.length,

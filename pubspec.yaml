@@ -19,7 +19,11 @@ dependencies:
   curved_labeled_navigation_bar: ^2.0.5
   image_picker: ^1.1.2
   intl: ^0.20.1
-  
+  flutter_dotenv: ^5.0.2
+  crypto: ^3.0.1
+  flutter_native_splash: ^1.2.0
+  carousel_slider: ^5.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -30,3 +34,12 @@ flutter:
   assets:
     - images/google.png
     - images/default_profile.jpg
+    - .env
+    - images/logo_app.png
+    - images/logo_splash.png
+    - images/slogan.png
+
+flutter_native_splash: 
+  color: "#ffffff" 
+  image: images/logo_app.png 
+  android: true 

@@ -7,18 +7,24 @@ class Authviewmodel extends ChangeNotifier {
   final AuthService _authService = AuthService();
   String? username = "";
   String email = "";
-  Future<bool> register(String email, String password, String username,
-      BuildContext context) async {
+  Future<bool> register(String email, String password, String firstName,
+      String lastName, BuildContext context) async {
     try {
-      final user =
-          await _authService.registerWithEmail(email, username, password);
+      final user = await _authService.registerWithEmail(
+          email, password, firstName, lastName);
       await getUserData(context);
       notifyListeners();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Logged in as $username")),
+        SnackBar(
+          content: Text("Logged in as $username"),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: 20.0),
+        ),
       );
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => NavigationPage()));
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => NavigationPage()),
+          (Route<dynamic> route) => false);
       return user != null;
     } catch (e) {
       ScaffoldMessenger.of(context)

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:math';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -25,24 +26,31 @@ class AuthService {
         email: realEmail,
         password: password,
       );
-      return username;
+      return username.trim();
     } catch (e) {
       throw Exception("Failed to login: $e");
     }
   }
 
   Future<User?> registerWithEmail(
-      String email, String username, String password) async {
+      String email, String password, String firstName, String lastName) async {
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: email,
+        email: email.trim(),
         password: password,
       );
       User? currentUser = _auth.currentUser;
+      final random = Random();
+      final randomDigits = random.nextInt(9000) + 1000;
+      final username = '${firstName}$randomDigits';
       await _firestore.collection('users').doc(currentUser?.uid).set({
-        'username': username,
-        'email': email,
+        'username': username.trim(),
+        'email': email.trim(),
+        'first_name': firstName.trim(),
+        'last_name': lastName.trim(),
+        'photo': null,
+        'phone_number': "",
       });
       return userCredential.user;
     } catch (e) {
@@ -79,9 +87,17 @@ class AuthService {
             .get();
         if (querySnapshot.docs.isEmpty) {
           User? currentUser = _auth.currentUser;
+          final random = Random();
+          final randomDigits = random.nextInt(9000) + 1000;
+          final username = '${user.displayName?.split(" ")[0]}$randomDigits';
+
           await _firestore.collection('users').doc(currentUser?.uid).set({
-            'username': user.displayName?.split(" ")[0],
+            'username': username.trim(),
+            'first_name': user.displayName?.split(" ")[0],
+            'last_name': user.displayName?.split(" ")[1],
             'email': user.email,
+            'phone_number': user.phoneNumber ?? '',
+            'photo': user.photoURL ?? '',
           });
         }
 
