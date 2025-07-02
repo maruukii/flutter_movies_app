@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/splash_screen.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/view-models/Authviewmodel.dart';
-import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Auth/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';

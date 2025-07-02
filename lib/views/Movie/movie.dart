@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_movies_app_mohamedhedi_magherbi/views/all_review.dart';
+import 'package:flutter_movies_app_mohamedhedi_magherbi/repositories/favorite_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/models/review.dart';
@@ -31,14 +31,33 @@ class MoviePage extends StatefulWidget {
 }
 
 class _MoviePageState extends State<MoviePage> {
-  final ApiRepository _apiRepository = ApiRepository();
+  final ReviewRepository reviewRepository = ReviewRepository();
+  final FavoriteRepository favoriteRepository = FavoriteRepository();
   final _auth = FirebaseAuth.instance;
   late Future<List<Review>> _data;
+  bool isFavorite = false;
 
   @override
   void initState() {
     super.initState();
-    _data = _apiRepository.fetchReviews(widget.movieId);
+    fetchFavoriteStatus();
+    _data = reviewRepository.fetchReviews(widget.movieId);
+  }
+
+  Future<void> fetchFavoriteStatus() async {
+    final favorites =
+        await favoriteRepository.fetchFavorites(_auth.currentUser!.uid);
+    setState(() {
+      isFavorite = favorites.contains(widget.movieId.toString());
+    });
+  }
+
+  void toggleFavorite() async {
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+    await favoriteRepository.addToFavorite(
+        _auth.currentUser!.uid, widget.movieId);
   }
 
   void _showReviewModal(String? username) {
@@ -96,9 +115,9 @@ class _MoviePageState extends State<MoviePage> {
                             date: DateFormat('yyyy-MM-dd HH:mm:ss')
                                 .format(DateTime.now()),
                             rating: rating);
-                        await _apiRepository.createReview(review);
+                        await reviewRepository.createReview(review);
                         setState(() {
-                          _data = _apiRepository.fetchReviews(widget.movieId);
+                          _data = reviewRepository.fetchReviews(widget.movieId);
                         });
                         Navigator.pop(context);
                       }
@@ -193,6 +212,25 @@ class _MoviePageState extends State<MoviePage> {
                                   TextStyle(color: Colors.white, fontSize: 18),
                             ),
                           ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 30.0,
+                      right: 16.0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : Colors.black,
+                            size: 30,
+                          ),
+                          onPressed: toggleFavorite,
                         ),
                       ),
                     ),

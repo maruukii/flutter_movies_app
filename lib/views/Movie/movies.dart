@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/view-models/Authviewmodel.dart';
 import 'package:flutter_movies_app_mohamedhedi_magherbi/views/Movie/movie.dart';
+import 'package:flutter_movies_app_mohamedhedi_magherbi/repositories/favorite_repository.dart'; // Import the favorite repository
 
 class MoviesPage extends StatefulWidget {
   const MoviesPage({super.key});
@@ -77,26 +79,30 @@ class _MoviesPageState extends State<MoviesPage> {
 
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("MoviesDB"),
-              Row(
-                children: [
-                  Text(
-                    "$username",
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("MoviesDB"),
+            Row(
+              children: [
+                Text(
+                  "$username",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
-                  IconButton(
-                      onPressed: _showSignOutConfirmationDialog,
-                      icon: Icon(Icons.logout))
-                ],
-              )
-            ],
-          )),
+                  textAlign: TextAlign.center,
+                ),
+                IconButton(
+                  onPressed: _showSignOutConfirmationDialog,
+                  icon: Icon(Icons.logout),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
       body: Container(
         margin: const EdgeInsets.all(24),
         child: Column(
@@ -124,13 +130,14 @@ class _FetchDataExampleState extends State<FetchDataExample> {
   String selectedCategory = 'upcoming';
   int _currentPage = 1;
   bool _showFavoriteOnly = false;
-  List<int> FavoriteMovies = [];
+  List<int> favoriteMovies = [];
   ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     fetchData();
+    fetchFavoriteMovies();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
@@ -145,7 +152,6 @@ class _FetchDataExampleState extends State<FetchDataExample> {
 
     try {
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
         setState(() {
           data.addAll(json.decode(response.body)['results']);
@@ -160,6 +166,25 @@ class _FetchDataExampleState extends State<FetchDataExample> {
     } catch (e) {
       setState(() {
         isLoading = false;
+        errorMessage = 'An error occurred: $e';
+      });
+    }
+  }
+
+  Future<void> fetchFavoriteMovies() async {
+    final FavoriteRepository favoriteRepository = FavoriteRepository();
+
+    final _auth = FirebaseAuth.instance;
+    final userId = _auth.currentUser!.uid;
+
+    try {
+      final favoriteMoviesList =
+          await favoriteRepository.fetchFavorites(userId);
+      setState(() {
+        favoriteMovies = favoriteMoviesList.map(int.parse).toList();
+      });
+    } catch (e) {
+      setState(() {
         errorMessage = 'An error occurred: $e';
       });
     }
@@ -191,7 +216,7 @@ class _FetchDataExampleState extends State<FetchDataExample> {
     }
 
     List<dynamic> displayedData = _showFavoriteOnly
-        ? data.where((movie) => FavoriteMovies.contains(movie['id'])).toList()
+        ? data.where((movie) => favoriteMovies.contains(movie['id'])).toList()
         : data;
 
     return Column(
@@ -221,6 +246,9 @@ class _FetchDataExampleState extends State<FetchDataExample> {
           onChanged: (bool value) {
             setState(() {
               _showFavoriteOnly = value;
+              if (_showFavoriteOnly) {
+                fetchFavoriteMovies();
+              }
             });
           },
         ),
@@ -243,17 +271,19 @@ class _FetchDataExampleState extends State<FetchDataExample> {
                 child: ListTile(
                   onTap: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MoviePage(
-                                  movieId: movie["id"],
-                                  movie: movie["original_title"],
-                                  poster: movie["poster_path"],
-                                  description: movie["overview"],
-                                  rating: movie["vote_average"].toDouble(),
-                                  vote_count: movie["vote_count"].toInt(),
-                                  release_date: movie["release_date"],
-                                )));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MoviePage(
+                          movieId: movie["id"],
+                          movie: movie["original_title"],
+                          poster: movie["poster_path"],
+                          description: movie["overview"],
+                          rating: movie["vote_average"].toDouble(),
+                          vote_count: movie["vote_count"].toInt(),
+                          release_date: movie["release_date"],
+                        ),
+                      ),
+                    );
                   },
                   leading: Image.network(posterUrl + movie['poster_path']),
                   trailing: SizedBox(
@@ -291,36 +321,40 @@ class _FetchDataExampleState extends State<FetchDataExample> {
             },
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: _currentPage > 1
-                  ? () {
+        !_showFavoriteOnly
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                    onPressed: _currentPage > 1
+                        ? () {
+                            setState(() {
+                              _currentPage--;
+                              data.clear();
+                              isLoading = true;
+                              fetchData();
+                            });
+                          }
+                        : null,
+                    child: Text("Previous"),
+                  ),
+                  SizedBox(width: 20),
+                  ElevatedButton(
+                    onPressed: () {
                       setState(() {
-                        _currentPage--;
+                        _currentPage++;
                         data.clear();
                         isLoading = true;
                         fetchData();
                       });
-                    }
-                  : null,
-              child: Text("Previous"),
-            ),
-            SizedBox(width: 20),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _currentPage++;
-                  data.clear();
-                  isLoading = true;
-                  fetchData();
-                });
-              },
-              child: Text("Next"),
-            ),
-          ],
-        ),
+                    },
+                    child: Text("Next"),
+                  ),
+                ],
+              )
+            : SizedBox(
+                height: 1,
+              )
       ],
     );
   }
