@@ -1,3 +1,2 @@
-# flutter_movies_app_mohamedhedi_magherbi
-
+# flutter_movies_app
 A movie app for users reviews.
